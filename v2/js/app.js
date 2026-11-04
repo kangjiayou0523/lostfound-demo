@@ -7,7 +7,7 @@
   const drawer = document.getElementById('side-panel');
   let drawerOpener = null;
   const state = {
-    drawer: null, reviewId: null, user: null, view: 'search', authMode: 'login', step: 1,
+    drawer: null, reviewId: null, user: null, view: 'account', authMode: 'login', step: 1,
     query: '', category: '', area: '', results: [], selected: null,
     remaining: 10, claims: [], items: [], logs: [], filter: 'pending',
     searchHint: '', error: '', success: '', loading: false, confirmReset: false
@@ -167,6 +167,7 @@
   }
   async function refresh(view, focus) {
     clearMessages();
+    if (!state.user) { state.authMode = 'login'; state.view = 'account'; state.drawer = null; render(focus); return; }
     if (state.user && state.user.role === 'admin') {
       const method = view === 'admin-items' ? () => api.getItems() : view === 'admin-logs' ? () => api.getLogs() : () => api.getClaims();
       const response = await call(method);
@@ -191,7 +192,7 @@
     event.preventDefault();
     if (state.loading) return;
     rememberSearch(); clearMessages();
-    if (target.dataset.view) { state.drawer = null; if (target.dataset.view === 'claims') { await refresh('search'); document.getElementById('my-claims').scrollIntoView({behavior:'smooth'}); } else await refresh(target.dataset.view, true); return; }
+    if (target.dataset.view) { if (!state.user) { await refresh('account', true); return; } state.drawer = null; if (target.dataset.view === 'claims') { await refresh('search'); document.getElementById('my-claims').scrollIntoView({behavior:'smooth'}); } else await refresh(target.dataset.view, true); return; }
     const action = target.dataset.action;
     if (action === 'close-panel') { closeDrawer(); return; }
     else if (action === 'open-review') { drawerOpener = target; state.reviewId = target.dataset.id; state.drawer = 'review'; renderDrawer(); }
